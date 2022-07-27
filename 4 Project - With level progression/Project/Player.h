@@ -2,6 +2,7 @@
 #include "PlacableActor.h"
 
 class Key;
+class Shield;
 
 class Player : public PlacableActor
 {
@@ -15,6 +16,10 @@ public:
 	void DropKey();
 	Key* GetKey() { return m_pCurrentKey; }
 
+	void PickupShield();
+	void UseShield() { m_shieldCount -= 1; }
+	int GetShields() { return m_shieldCount;  }
+
 	void AddMoney(int money) { m_money += money; }
 	int GetMoney() { return m_money; }
 
@@ -25,6 +30,7 @@ public:
 	virtual void Draw() override;
 private:
 	Key* m_pCurrentKey;
+	int m_shieldCount;
 	int m_money;
 	int m_lives;
 };

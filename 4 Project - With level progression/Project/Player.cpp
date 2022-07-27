@@ -12,6 +12,7 @@ Player::Player()
 	: PlacableActor(0, 0)
 	, m_pCurrentKey(nullptr)
 	, m_money(0)
+	, m_shieldCount(0)
 	, m_lives(kStartingNumberOfLives)
 {
 
@@ -24,7 +25,7 @@ bool Player::HasKey()
 
 bool Player::HasKey(ActorColor color)
 {
-	return true;// HasKey() && m_pCurrentKey->GetColor() == color;
+	return HasKey() && m_pCurrentKey->GetColor() == color;
 }
 
 void Player::PickupKey(Key* key)
@@ -49,6 +50,11 @@ void Player::DropKey()
 		m_pCurrentKey->Place(m_pPosition->x, m_pPosition->y);
 		m_pCurrentKey = nullptr;
 	}
+}
+
+void Player::PickupShield()
+{
+	m_shieldCount+=1;
 }
 
 void Player::Draw()

@@ -10,6 +10,7 @@
 #include "Door.h"
 #include "Money.h"
 #include "Goal.h"
+#include "Shield.h"
 #include "AudioManager.h"
 #include "Utility.h"
 #include "StateMachineExampleGame.h"
@@ -30,6 +31,7 @@ GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	, m_currentLevel(0)
 	, m_pLevel(nullptr)
 {
+	m_LevelNames.push_back("shieldLevel.txt");
 	m_LevelNames.push_back("Level1.txt");
 	m_LevelNames.push_back("Level2.txt");
 	m_LevelNames.push_back("Level3.txt");
@@ -107,7 +109,7 @@ bool GameplayState::Update(bool processInput)
 		// If position never changed
 		if (newPlayerX == m_player.GetXPosition() && newPlayerY == m_player.GetYPosition())
 		{
-			//return false;
+			return false;
 		}
 		else
 		{
@@ -157,7 +159,15 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			collidedEnemy->Remove();
 			m_player.SetPosition(newPlayerX, newPlayerY);
 
-			m_player.DecrementLives();
+			if (m_player.GetShields() > 0)
+			{
+				m_player.UseShield();
+			}
+			else
+			{
+				m_player.DecrementLives();
+			}
+			
 			if (m_player.GetLives() < 0)
 			{
 				//TODO: Go to game over screen
@@ -223,6 +233,16 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			m_beatLevel = true;
 			break;
 		}
+		case ActorType::Shield:
+		{
+			Shield* collidedShield = dynamic_cast<Shield*>(collidedActor);
+			assert(collidedShield);
+			collidedShield->Remove();
+			m_player.SetPosition(newPlayerX, newPlayerY);
+			m_player.PickupShield();
+			// Sound?
+			break;
+		}
 		default:
 			break;
 		}
@@ -264,8 +284,11 @@ void GameplayState::DrawHUD(const HANDLE& console)
 {
 	cout << endl;
 
+	// Hardcoded UI Borders to fit all details (border should be fixed length 
+	// no matter the level size so all details are always present/in correct order)
+
 	// Top Border
-	for (int i = 0; i < m_pLevel->GetWidth(); ++i)
+	for (int i = 0; i < /*m_pLevel->GetWidth()*/ 62; ++i)
 	{
 		cout << Level::WAL;
 	}
@@ -282,26 +305,29 @@ void GameplayState::DrawHUD(const HANDLE& console)
 	if (m_player.HasKey())
 	{
 		m_player.GetKey()->Draw();
+		cout << " " << Level::WAL;
 	}
 	else
 	{
-		cout << " ";
+		cout << "  " << Level::WAL;
 	}
 
-	// RightSide border
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(console, &csbi);
+	cout << " shields:" << m_player.GetShields() << " " << Level::WAL;
 
-	COORD pos;
-	pos.X = m_pLevel->GetWidth() - 1;
-	pos.Y = csbi.dwCursorPosition.Y;
-	SetConsoleCursorPosition(console, pos);
+	//// RightSide border
+	//CONSOLE_SCREEN_BUFFER_INFO csbi;
+	//GetConsoleScreenBufferInfo(console, &csbi);
 
-	cout << Level::WAL;
+	//COORD pos;
+	//pos.X = m_pLevel->GetWidth() - 1;
+	//pos.Y = csbi.dwCursorPosition.Y;
+	//SetConsoleCursorPosition(console, pos);
+
+	//cout << Level::WAL;
 	cout << endl;
 
 	// Bottom Border
-	for (int i = 0; i < m_pLevel->GetWidth(); ++i)
+	for (int i = 0; i < /*m_pLevel->GetWidth()*/ 62; ++i)
 	{
 		cout << Level::WAL;
 	}

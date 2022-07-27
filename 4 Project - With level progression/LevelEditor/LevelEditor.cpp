@@ -150,6 +150,7 @@ void DisplayLegend()
 	cout << "h for horizontal moving enemy" << endl;
 	cout << "e for non-moving enemy" << endl;
 	cout << "X for end" << endl;
+	cout << "] for shield" << endl;
 }
 
 void SaveLevel(char* pLevel, int width, int height)
