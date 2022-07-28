@@ -20,6 +20,7 @@ enum class ActorType
 	Key,
 	Money,
 	Shield,
+	ConfusionTrap,
 	Player
 };
 

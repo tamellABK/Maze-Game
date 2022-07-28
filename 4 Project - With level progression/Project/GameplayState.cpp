@@ -11,6 +11,7 @@
 #include "Money.h"
 #include "Goal.h"
 #include "Shield.h"
+#include "ConfusionTrap.h"
 #include "AudioManager.h"
 #include "Utility.h"
 #include "StateMachineExampleGame.h"
@@ -31,6 +32,7 @@ GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	, m_currentLevel(0)
 	, m_pLevel(nullptr)
 {
+	m_LevelNames.push_back("trapLevel.txt");
 	m_LevelNames.push_back("shieldLevel.txt");
 	m_LevelNames.push_back("Level1.txt");
 	m_LevelNames.push_back("Level2.txt");
@@ -113,6 +115,20 @@ bool GameplayState::Update(bool processInput)
 		}
 		else
 		{
+			if (m_player.IsConfused())
+			{ 
+				if (!m_player.ConfusionTurns() <= 0)
+				{
+					newPlayerX = (newPlayerX + (newPlayerX - m_player.GetXPosition()) * -2);
+					newPlayerY = (newPlayerY + (newPlayerY - m_player.GetYPosition()) * -2);
+					m_player.DecrementConfusion();
+				}
+				else
+				{
+					m_player.SetConfused(false);
+				}
+				
+			}
 			HandleCollision(newPlayerX, newPlayerY);
 		}
 	}
@@ -242,6 +258,14 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 			m_player.PickupShield();
 			// Sound?
 			break;
+		}
+		case ActorType::ConfusionTrap:
+		{
+			ConfusionTrap* collidedTrap = dynamic_cast<ConfusionTrap*>(collidedActor);
+			assert(collidedTrap);
+			m_player.SetPosition(newPlayerX, newPlayerY);
+			collidedTrap->SpringTrap();
+			m_player.SetConfused(true);
 		}
 		default:
 			break;

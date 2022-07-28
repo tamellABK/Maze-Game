@@ -7,12 +7,15 @@
 using namespace std;
 
 constexpr int kStartingNumberOfLives = 3;
+constexpr int kTurnsConfused = 15;
 
 Player::Player()
 	: PlacableActor(0, 0)
 	, m_pCurrentKey(nullptr)
 	, m_money(0)
 	, m_shieldCount(0)
+	, m_confused(false)
+	, m_confusedTurns(0)
 	, m_lives(kStartingNumberOfLives)
 {
 
@@ -55,6 +58,12 @@ void Player::DropKey()
 void Player::PickupShield()
 {
 	m_shieldCount+=1;
+}
+
+void Player::SetConfused(bool state)
+{
+	m_confused = state; 
+	if (state) { m_confusedTurns = kTurnsConfused; }
 }
 
 void Player::Draw()

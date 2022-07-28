@@ -20,6 +20,11 @@ public:
 	void UseShield() { m_shieldCount -= 1; }
 	int GetShields() { return m_shieldCount;  }
 
+	bool IsConfused() { return m_confused; }
+	void SetConfused(bool state);
+	int ConfusionTurns() { return m_confusedTurns; }
+	void DecrementConfusion() { m_confusedTurns--; }
+
 	void AddMoney(int money) { m_money += money; }
 	int GetMoney() { return m_money; }
 
@@ -33,4 +38,6 @@ private:
 	int m_shieldCount;
 	int m_money;
 	int m_lives;
+	bool m_confused;
+	int m_confusedTurns;
 };

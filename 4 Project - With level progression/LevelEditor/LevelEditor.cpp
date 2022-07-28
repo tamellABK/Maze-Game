@@ -151,6 +151,7 @@ void DisplayLegend()
 	cout << "e for non-moving enemy" << endl;
 	cout << "X for end" << endl;
 	cout << "] for shield" << endl;
+	cout << "# for Confusion Trap" << endl;
 }
 
 void SaveLevel(char* pLevel, int width, int height)

@@ -10,6 +10,7 @@
 #include "Goal.h"
 #include "Money.h"
 #include "Shield.h"
+#include "ConfusionTrap.h"
 
 using namespace std;
 
@@ -185,6 +186,10 @@ bool Level::ConvertLevel(int* playerX, int* playerY)
 			case ']':
 				m_pLevelData[index] = ' ';
 				m_pActors.push_back(new Shield(x, y));
+				break;
+			case '#':
+				m_pLevelData[index] = ' ';
+				m_pActors.push_back(new ConfusionTrap(x, y));
 				break;
 			case ' ':
 				break;
