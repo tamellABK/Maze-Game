@@ -117,7 +117,7 @@ bool GameplayState::Update(bool processInput)
 		{
 			if (m_player.IsConfused())
 			{ 
-				if (!m_player.ConfusionTurns() <= 0)
+				if (m_player.ConfusionTurns() > 0)
 				{
 					newPlayerX = (newPlayerX + (newPlayerX - m_player.GetXPosition()) * -2);
 					newPlayerY = (newPlayerY + (newPlayerY - m_player.GetYPosition()) * -2);
