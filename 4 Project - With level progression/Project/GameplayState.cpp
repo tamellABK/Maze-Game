@@ -16,8 +16,6 @@
 #include "Utility.h"
 #include "StateMachineExampleGame.h"
 
-using namespace std;
-
 constexpr int kArrowInput = 224;
 constexpr int kLeftArrow = 75;
 constexpr int kRightArrow = 77;
@@ -33,10 +31,7 @@ GameplayState::GameplayState(StateMachineExampleGame* pOwner)
 	, m_pLevel(nullptr)
 {
 	m_LevelNames.push_back("trapLevel.txt");
-	m_LevelNames.push_back("shieldLevel.txt");
 	m_LevelNames.push_back("Level1.txt");
-	m_LevelNames.push_back("Level2.txt");
-	m_LevelNames.push_back("Level3.txt");
 }
 
 GameplayState::~GameplayState()
@@ -54,7 +49,8 @@ bool GameplayState::Load()
 	}
 
 	m_pLevel = new Level();
-	
+	m_inputThread = thread(&GameplayState::ProcessInput, this);
+
 	return m_pLevel->Load(m_LevelNames.at(m_currentLevel), m_player.GetXPositionPointer(), m_player.GetYPositionPointer());
 
 }
@@ -66,68 +62,72 @@ void GameplayState::Enter()
 
 void GameplayState::ProcessInput()
 {
-	int input = _getch();
-	int arrowInput = 0;
-	int newPlayerX = m_player.GetXPosition();
-	int newPlayerY = m_player.GetYPosition();
+	while (true)
+	{
+		if (m_didBeatLevel) break;
+		int input = _getch();
+		int arrowInput = 0;
+		int newPlayerX = m_player.GetXPosition();
+		int newPlayerY = m_player.GetYPosition();
 
-	// One of the arrow keys were pressed
-	if (input == kArrowInput)
-	{
-		arrowInput = _getch();
-	}
-
-	if ((input == kArrowInput && arrowInput == kLeftArrow) ||
-		(char)input == 'A' || (char)input == 'a')
-	{
-		newPlayerX--;
-	}
-	else if ((input == kArrowInput && arrowInput == kRightArrow) ||
-		(char)input == 'D' || (char)input == 'd')
-	{
-		newPlayerX++;
-	}
-	else if ((input == kArrowInput && arrowInput == kUpArrow) ||
-		(char)input == 'W' || (char)input == 'w')
-	{
-		newPlayerY--;
-	}
-	else if ((input == kArrowInput && arrowInput == kDownArrow) ||
-		(char)input == 'S' || (char)input == 's')
-	{
-		newPlayerY++;
-	}
-	else if (input == kEscapeKey)
-	{
-		m_pOwner->LoadScene(StateMachineExampleGame::SceneName::MainMenu);
-	}
-	else if ((char)input == 'Z' || (char)input == 'z')
-	{
-		m_player.DropKey();
-	}
-
-	// If position never changed
-	if (newPlayerX == m_player.GetXPosition() && newPlayerY == m_player.GetYPosition())
-	{
-		//return false;
-	}
-	else
-	{
-		if (m_player.IsConfused())
+		// One of the arrow keys were pressed
+		if (input == kArrowInput)
 		{
-			if (m_player.ConfusionTurns() > 0)
-			{
-				newPlayerX = (newPlayerX + (newPlayerX - m_player.GetXPosition()) * -2);
-				newPlayerY = (newPlayerY + (newPlayerY - m_player.GetYPosition()) * -2);
-				m_player.DecrementConfusion();
-			}
-			else
-			{
-				m_player.SetConfused(false);
-			}
-
+			arrowInput = _getch();
 		}
-		HandleCollision(newPlayerX, newPlayerY);
+
+		if ((input == kArrowInput && arrowInput == kLeftArrow) ||
+			(char)input == 'A' || (char)input == 'a')
+		{
+			newPlayerX--;
+		}
+		else if ((input == kArrowInput && arrowInput == kRightArrow) ||
+			(char)input == 'D' || (char)input == 'd')
+		{
+			newPlayerX++;
+		}
+		else if ((input == kArrowInput && arrowInput == kUpArrow) ||
+			(char)input == 'W' || (char)input == 'w')
+		{
+			newPlayerY--;
+		}
+		else if ((input == kArrowInput && arrowInput == kDownArrow) ||
+			(char)input == 'S' || (char)input == 's')
+		{
+			newPlayerY++;
+		}
+		else if (input == kEscapeKey)
+		{
+			m_pOwner->LoadScene(StateMachineExampleGame::SceneName::MainMenu);
+		}
+		else if ((char)input == 'Z' || (char)input == 'z')
+		{
+			m_player.DropKey();
+		}
+
+		// If position never changed
+		if (newPlayerX == m_player.GetXPosition() && newPlayerY == m_player.GetYPosition())
+		{
+			//return false;
+		}
+		else
+		{
+			if (m_player.IsConfused())
+			{
+				if (m_player.ConfusionTurns() > 0)
+				{
+					newPlayerX = (newPlayerX + (newPlayerX - m_player.GetXPosition()) * -2);
+					newPlayerY = (newPlayerY + (newPlayerY - m_player.GetYPosition()) * -2);
+					m_player.DecrementConfusion();
+				}
+				else
+				{
+					m_player.SetConfused(false);
+				}
+
+			}
+			HandleCollision(newPlayerX, newPlayerY);
+		}
 	}
 }
 
@@ -138,6 +138,7 @@ void::GameplayState::CheckPlayerWin()
 		++m_skipFrameCount;
 		if (m_skipFrameCount > kFramesToSkip)
 		{
+			m_inputThread.join();
 			m_didBeatLevel = false;
 			m_skipFrameCount = 0;
 			++m_currentLevel;
@@ -164,7 +165,7 @@ bool GameplayState::Update(bool processInput)
 {
 	if (processInput && !m_didBeatLevel)
 	{
-		ProcessInput();
+		HandleCollision(m_player.GetXPosition(), m_player.GetYPosition());
 	}
 	CheckPlayerWin();
 
@@ -196,7 +197,7 @@ void GameplayState::HandleCollision(int newPlayerX, int newPlayerY)
 				m_player.DecrementLives();
 			}
 			
-			if (m_player.GetLives() < 0)
+			if (m_player.GetLives() <= 0)
 			{
 				//TODO: Go to game over screen
 				AudioManager::GetInstance()->PlayLoseSound();

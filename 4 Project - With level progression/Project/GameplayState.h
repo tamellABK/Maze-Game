@@ -6,6 +6,9 @@
 #include <windows.h>
 #include <vector>
 #include <string>
+#include <thread>
+
+using namespace std;
 
 class StateMachineExampleGame;
 
@@ -34,9 +37,10 @@ public:
 	virtual void ProcessInput() override;
 
 private:
-	
 	void CheckPlayerWin();
 	void HandleCollision(int newPlayerX, int newPlayerY);
 	bool Load();
 	void DrawHUD(const HANDLE& console);
+
+	thread m_inputThread;
 };
